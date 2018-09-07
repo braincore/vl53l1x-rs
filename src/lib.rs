@@ -112,13 +112,15 @@ impl Vl53l1x {
             0x00,
         ])?;
 
-        thread::sleep(time::Duration::new(0, 100_000));
+        thread::sleep(time::Duration::from_micros(100));
 
         self.i2c_dev.write(&[
             (Vl53l1xReg::SoftReset.addr() >> 8) as u8,
             (Vl53l1xReg::SoftReset.addr() & 0xff) as u8,
             0x01,
         ])?;
+
+        thread::sleep(time::Duration::from_micros(200));
 
         Ok(())
     }
@@ -129,7 +131,7 @@ impl Vl53l1x {
         loop {
             self.i2c_dev.write(
             &addr_to_bytes(Vl53l1xReg::FirmwareSystemStatus.addr()))?;
-            self.i2c_dev.read(&mut buf2)?;
+                self.i2c_dev.read(&mut buf2)?;
             let system_status = BigEndian::read_u16(&buf2);
             if system_status & 0x0001 != 0 {
                 attempts += 1;
