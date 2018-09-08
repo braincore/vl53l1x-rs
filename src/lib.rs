@@ -6,14 +6,6 @@ use i2cdev::linux::{LinuxI2CDevice, LinuxI2CError};
 use std::thread;
 use std::time;
 
-pub trait I2cInterface {
-    fn addr(&self) -> u16;
-}
-
-pub trait Register {
-    fn mask(&self) -> u8;
-}
-
 pub fn get_i2c_bus_path(i2c_bus: i32) -> String {
     format!("/dev/i2c-{}", i2c_bus)
 }
@@ -21,45 +13,29 @@ pub fn get_i2c_bus_path(i2c_bus: i32) -> String {
 pub const VL53L1_I2C_ADDR: u16 = 0x29;
 
 #[allow(dead_code)]
+#[derive(Clone, Copy)]
 enum Vl53l1xReg {
-    IdentificationModelId,
-    SoftReset,
-    FirmwareSystemStatus,
-    PadI2cHvExtsupConfig,
-    GpioTioHvStatus,
-    ResultFinalCrosstalkCorrectedRangeMmSd0,
-    ResultPeakSignalCountRateCrosstalkCorrectedMcpsSd0,
-    RangeConfigVcselPeriodA,
-    RangeConfigVcselPeriodB,
-    RangeConfigValidPhaseHigh,
-    RoiConfigUserRoiCentreSpad,
-    RoiConfigUserRoiRequestedGlobalXySize,
-    SdConfigWoiSd0,
-    SdConfigWoiSd1,
-    SdConfigInitialPhaseSd0,
-    SdConfigInitialPhaseSd1,
+    IdentificationModelId = 0x010f,
+    SoftReset = 0x0000,
+    FirmwareSystemStatus = 0x00e5,
+    PadI2cHvExtsupConfig = 0x002e,
+    GpioTioHvStatus = 0x0031,
+    ResultFinalCrosstalkCorrectedRangeMmSd0 = 0x0096,
+    ResultPeakSignalCountRateCrosstalkCorrectedMcpsSd0 = 0x0098,
+    RangeConfigVcselPeriodA = 0x0060,
+    RangeConfigVcselPeriodB = 0x0063,
+    RangeConfigValidPhaseHigh = 0x0069,
+    RoiConfigUserRoiCentreSpad = 0x007f,
+    RoiConfigUserRoiRequestedGlobalXySize = 0x0080,
+    SdConfigWoiSd0 = 0x0078,
+    SdConfigWoiSd1 = 0x0079,
+    SdConfigInitialPhaseSd0 = 0x007a,
+    SdConfigInitialPhaseSd1 = 0x007b,
 }
 
-impl I2cInterface for Vl53l1xReg {
+impl Vl53l1xReg {
     fn addr(&self) -> u16 {
-        match *self {
-            Vl53l1xReg::IdentificationModelId => 0x010f,
-            Vl53l1xReg::SoftReset => 0x0000,
-            Vl53l1xReg::FirmwareSystemStatus => 0x00e5,
-            Vl53l1xReg::PadI2cHvExtsupConfig => 0x002e,
-            Vl53l1xReg::GpioTioHvStatus => 0x0031,
-            Vl53l1xReg::ResultFinalCrosstalkCorrectedRangeMmSd0 => 0x0096,
-            Vl53l1xReg::ResultPeakSignalCountRateCrosstalkCorrectedMcpsSd0 => 0x0098,
-            Vl53l1xReg::RangeConfigVcselPeriodA => 0x0060,
-            Vl53l1xReg::RangeConfigVcselPeriodB => 0x0063,
-            Vl53l1xReg::RangeConfigValidPhaseHigh => 0x0069,
-            Vl53l1xReg::RoiConfigUserRoiCentreSpad => 0x007f,
-            Vl53l1xReg::RoiConfigUserRoiRequestedGlobalXySize => 0x0080,
-            Vl53l1xReg::SdConfigWoiSd0 => 0x0078,
-            Vl53l1xReg::SdConfigWoiSd1 => 0x0079,
-            Vl53l1xReg::SdConfigInitialPhaseSd0 => 0x007a,
-            Vl53l1xReg::SdConfigInitialPhaseSd1 => 0x007b,
-        }
+        *self as u16
     }
 }
 
