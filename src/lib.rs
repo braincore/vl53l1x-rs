@@ -32,6 +32,8 @@ enum Vl53l1xReg {
     RangeConfigVcselPeriodA,
     RangeConfigVcselPeriodB,
     RangeConfigValidPhaseHigh,
+    RoiConfigUserRoiCentreSpad,
+    RoiConfigUserRoiRequestedGlobalXySize,
     SdConfigWoiSd0,
     SdConfigWoiSd1,
     SdConfigInitialPhaseSd0,
@@ -51,6 +53,8 @@ impl I2cInterface for Vl53l1xReg {
             Vl53l1xReg::RangeConfigVcselPeriodA => 0x0060,
             Vl53l1xReg::RangeConfigVcselPeriodB => 0x0063,
             Vl53l1xReg::RangeConfigValidPhaseHigh => 0x0069,
+            Vl53l1xReg::RoiConfigUserRoiCentreSpad => 0x007f,
+            Vl53l1xReg::RoiConfigUserRoiRequestedGlobalXySize => 0x0080,
             Vl53l1xReg::SdConfigWoiSd0 => 0x0078,
             Vl53l1xReg::SdConfigWoiSd1 => 0x0079,
             Vl53l1xReg::SdConfigInitialPhaseSd0 => 0x007a,
@@ -259,11 +263,82 @@ impl Vl53l1x {
 
         Ok(())
     }
+
+    /// Returns (TopLeftX, TopLeftY, BotRightX, BotRightY)
+    pub fn get_user_roi(&mut self) -> Result<(u8, u8, u8, u8), LinuxI2CError> {
+
+        let center = i2c_read_u8(
+            &mut self.i2c_dev, Vl53l1xReg::RoiConfigUserRoiCentreSpad.addr())?;
+        let row;
+        let col;
+        if center > 127 {
+            row = 8 + ((255 - center) & 0x07);
+            col = (center - 128) >> 3;
+        } else {
+            row = center & 0x07;
+            col = (127 - center) >> 3;
+        }
+
+        let dimensions = i2c_read_u8(
+            &mut self.i2c_dev,
+            Vl53l1xReg::RoiConfigUserRoiRequestedGlobalXySize.addr())?;
+        let height = dimensions >> 4;
+        let width = dimensions & 0x0f;
+
+        Ok((
+            (2 * col - width) >> 1,
+            (2 * row - height) >> 1,
+            (2 * col + width) >> 1,
+            (2 * row + height) >> 1,
+            ))
+    }
+
+    pub fn set_zone_size(&mut self, width: u8, height: u8) -> Result<(), LinuxI2CError> {
+        let dimensions = (height << 4) + width;
+        i2c_write_u8(
+            &mut self.i2c_dev,
+            Vl53l1xReg::RoiConfigUserRoiRequestedGlobalXySize.addr(), dimensions)?;
+        Ok(())
+    }
+
+    pub fn set_center(&mut self, center_x: u8, center_y: u8) -> Result<(), LinuxI2CError> {
+        let center;
+        if center_y > 7 {
+            center = 128 + (center_x << 3) + (15 - center_y);
+        } else {
+            center = ((15 - center_x) << 3) + center_y;
+        }
+        i2c_write_u8(
+            &mut self.i2c_dev,
+            Vl53l1xReg::RoiConfigUserRoiCentreSpad.addr(), center)?;
+        Ok(())
+    }
+
+    /// Setting the ROI changes the sensor's diagonal field-of-view.
+    /// 16x16: 27 degrees, 8x8: 20 degrees, 4x4, 15 degrees
+    /// roi: (topLeftX, topLeftY, bottomRightX, bottomRightY)
+    pub fn set_user_roi(&mut self, roi: (u8, u8, u8, u8)) -> Result<(), LinuxI2CError> {
+        let center_x = (roi.0 + roi.2 + 1) / 2;
+        let center_y = (roi.1 + roi.3 + 1) / 2;
+        let width = roi.2 - roi.0;
+        let height = roi.3 - roi.1;
+
+        if width < 3 || height < 3 {
+            panic!("Width and height must be at least 4.")
+        } else {
+            self.set_center(center_x, center_y)?;
+            self.set_zone_size(width, height)?;
+        }
+        Ok(())
+    }
 }
 
 pub enum DistanceMode {
+    /// Max distance: 1360mm (dark), 1350mm (ambient)
     Short,
+    /// Max distance: 2900mm (dark), 760mm (ambient)
     Mid,
+    /// Max distance: 3600mm (dark), 730mm (ambient)
     Long,
 }
 
