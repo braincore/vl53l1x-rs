@@ -182,15 +182,28 @@ impl Vl53l1x {
         Ok(val)
     }
 
-    pub fn read_measurement(&mut self) -> Result<Measurement, LinuxI2CError> {
+    pub fn read_measurement(&mut self) -> Result<Vl53l1xSample, LinuxI2CError> {
         self.i2c_dev.write(
             &addr_to_bytes(Vl53l1xReg::ResultFinalCrosstalkCorrectedRangeMmSd0.addr()))?;
         let mut buf4 = [0u8; 6];
         self.i2c_dev.read(&mut buf4)?;
 
-        Ok(Measurement {
-            distance: BigEndian::read_u16(&buf4[0 .. 2]),
-            signal_rate: BigEndian::read_u16(&buf4[2 .. 4]),
+        let distance = BigEndian::read_u16(&buf4[0 .. 2]);
+        let signal_rate = BigEndian::read_u16(&buf4[2 .. 4]);
+
+        let corrected;
+        if distance == 0 && signal_rate > 30000 {
+            corrected = Vl53l1xCorrectedSample::TooClose;
+        } else if signal_rate < 100 {
+            corrected = Vl53l1xCorrectedSample::TooFar;
+        } else {
+            corrected = Vl53l1xCorrectedSample::Ok(distance + 135);
+        }
+
+        Ok(Vl53l1xSample {
+            distance,
+            signal_rate,
+            corrected,
         })
     }
 
@@ -319,9 +332,19 @@ pub enum DistanceMode {
 }
 
 #[derive(Debug)]
-pub struct Measurement {
+pub struct Vl53l1xSample {
+    /// Distance is in mm.
     pub distance: u16,
+    /// Empirically, ranges between 0 to 40,000.
     pub signal_rate: u16,
+    pub corrected: Vl53l1xCorrectedSample,
+}
+
+#[derive(Debug)]
+pub enum Vl53l1xCorrectedSample {
+    TooClose,
+    Ok(u16),
+    TooFar,
 }
 
 fn addr_to_bytes(addr: u16) -> [u8; 2] {
