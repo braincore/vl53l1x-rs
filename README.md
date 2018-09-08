@@ -13,3 +13,8 @@ various registers, this library is based on the reverse engineering by
 ## Platform
 
 This library has only been tested on the Raspberry Pi 3 B+.
+
+## Todo
+
+- [ ] Get/set timing budget.
+- [ ] Get/set tuning parameters.
