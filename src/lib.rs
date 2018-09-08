@@ -182,7 +182,7 @@ impl Vl53l1x {
         Ok(val)
     }
 
-    pub fn read_measurement(&mut self) -> Result<Vl53l1xSample, LinuxI2CError> {
+    pub fn read_sample(&mut self) -> Result<Vl53l1xSample, LinuxI2CError> {
         self.i2c_dev.write(
             &addr_to_bytes(Vl53l1xReg::ResultFinalCrosstalkCorrectedRangeMmSd0.addr()))?;
         let mut buf4 = [0u8; 6];

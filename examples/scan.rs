@@ -11,7 +11,7 @@ pub fn main() {
     loop {
         vl.wait_data_ready().unwrap();
 
-        let m = vl.read_measurement().unwrap();
-        println!("{:?}", m);
+        let s = vl.read_sample().unwrap();
+        println!("{:?}", s);
     }
 }
