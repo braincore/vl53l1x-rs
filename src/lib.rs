@@ -192,7 +192,7 @@ impl Vl53l1x {
         let signal_rate = BigEndian::read_u16(&buf4[2 .. 4]);
 
         let corrected;
-        if distance == 0 && signal_rate > 30000 {
+        if distance == 0 && signal_rate > 20000 {
             corrected = Vl53l1xCorrectedSample::TooClose;
         } else if signal_rate < 100 {
             corrected = Vl53l1xCorrectedSample::TooFar;
