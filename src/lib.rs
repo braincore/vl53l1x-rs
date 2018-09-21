@@ -42,6 +42,13 @@ impl Vl53l1xReg {
 pub struct Vl53l1x {
     i2c_dev: LinuxI2CDevice,
     config: Vec<u8>,
+    /// The distance correction factor. The device has a dead zone between the
+    /// VCSEL and SPAD so when the device reports 1mm, it's actually 1mm from
+    /// the deadzone, which I have empirically found to be around 13cm. This
+    /// differs per device and things like reflow even affect it. It's
+    /// important to determine the offset by testing with a known distance and
+    /// comparing against samples while offset is set to 0.
+    range_offset: u16,
 }
 
 const MODEL_ID: u16 = 0xeacc;
@@ -51,7 +58,7 @@ impl Vl53l1x {
     /// Connects to VL53L1X.
     ///
     /// If i2c_addr is None, defaults to 0x29.
-    pub fn new(i2c_bus: i32, i2c_addr: Option<u16>)
+    pub fn new(i2c_bus: i32, i2c_addr: Option<u16>, range_offset: u16)
                -> Result<Vl53l1x, LinuxI2CError> {
         let i2c_dev = LinuxI2CDevice::new(
             get_i2c_bus_path(i2c_bus), i2c_addr.unwrap_or(0x29))?;
@@ -59,6 +66,7 @@ impl Vl53l1x {
         let mut vl = Vl53l1x {
             i2c_dev,
             config: CONFIG.to_vec(),
+            range_offset,
         };
 
         vl.check_model_id()?;
@@ -197,7 +205,7 @@ impl Vl53l1x {
         } else if signal_rate < 100 {
             corrected = Vl53l1xCorrectedSample::TooFar;
         } else {
-            corrected = Vl53l1xCorrectedSample::Ok(distance + 135);
+            corrected = Vl53l1xCorrectedSample::Ok(distance + self.range_offset);
         }
 
         Ok(Vl53l1xSample {
