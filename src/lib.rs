@@ -138,7 +138,7 @@ impl Vl53l1x {
 
     fn write_i2c_28v(&mut self) -> Result<(), LinuxI2CError> {
         let mut reg_value = i2c_read_u16(
-            &mut self.i2c_dev, Vl53l1xReg::PadI2cHvExtsupConfig.addr()).unwrap();
+            &mut self.i2c_dev, Vl53l1xReg::PadI2cHvExtsupConfig.addr())?;
         reg_value = (reg_value & 0xfe) | 0x01;
 
         i2c_write_u16(
@@ -149,7 +149,7 @@ impl Vl53l1x {
 
     fn get_trim_resistors(&mut self) -> Result<(), LinuxI2CError> {
         for i in 0..36 {
-            self.config[i] = i2c_read_u8(&mut self.i2c_dev, (i + 1) as u16).unwrap();
+            self.config[i] = i2c_read_u8(&mut self.i2c_dev, (i + 1) as u16)?;
         }
         Ok(())
     }
@@ -165,7 +165,7 @@ impl Vl53l1x {
 
     pub fn check_data_ready(&mut self) -> Result<bool, LinuxI2CError> {
         let val = i2c_read_u8(
-            &mut self.i2c_dev, Vl53l1xReg::GpioTioHvStatus.addr()).unwrap();
+            &mut self.i2c_dev, Vl53l1xReg::GpioTioHvStatus.addr())?;
         Ok(val != 0x03)
     }
 
@@ -179,14 +179,14 @@ impl Vl53l1x {
     pub fn read_distance(&mut self) -> Result<u16, LinuxI2CError> {
         let val = i2c_read_u16(
             &mut self.i2c_dev,
-            Vl53l1xReg::ResultFinalCrosstalkCorrectedRangeMmSd0.addr()).unwrap();
+            Vl53l1xReg::ResultFinalCrosstalkCorrectedRangeMmSd0.addr())?;
         Ok(val)
     }
 
     pub fn read_signal_rate(&mut self) -> Result<u16, LinuxI2CError> {
         let val = i2c_read_u16(
             &mut self.i2c_dev,
-            Vl53l1xReg::ResultPeakSignalCountRateCrosstalkCorrectedMcpsSd0.addr()).unwrap();
+            Vl53l1xReg::ResultPeakSignalCountRateCrosstalkCorrectedMcpsSd0.addr())?;
         Ok(val)
     }
 
