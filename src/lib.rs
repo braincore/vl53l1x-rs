@@ -15,6 +15,7 @@ pub const VL53L1_I2C_ADDR: u16 = 0x29;
 #[allow(dead_code)]
 #[derive(Clone, Copy)]
 enum Vl53l1xReg {
+    SlaveDeviceAddress = 0x0001,
     IdentificationModelId = 0x010f,
     SoftReset = 0x0000,
     FirmwareSystemStatus = 0x00e5,
@@ -40,6 +41,8 @@ impl Vl53l1xReg {
 }
 
 pub struct Vl53l1x {
+    i2c_bus: i32,
+    i2c_addr: u8,
     i2c_dev: LinuxI2CDevice,
     config: Vec<u8>,
     /// The distance correction factor. The device has a dead zone between the
@@ -58,24 +61,36 @@ impl Vl53l1x {
     /// Connects to VL53L1X.
     ///
     /// If i2c_addr is None, defaults to 0x29.
-    pub fn new(i2c_bus: i32, i2c_addr: Option<u16>, range_offset: u16)
-               -> Result<Vl53l1x, LinuxI2CError> {
+    pub fn new(i2c_bus: i32, i2c_addr: Option<u8>, range_offset: u16)
+               -> Result<Self, LinuxI2CError> {
+        let i2c_addr = i2c_addr.unwrap_or(0x29);
         let i2c_dev = LinuxI2CDevice::new(
-            get_i2c_bus_path(i2c_bus), i2c_addr.unwrap_or(0x29))?;
-
-        let mut vl = Vl53l1x {
+            get_i2c_bus_path(i2c_bus), i2c_addr as u16)?;
+        Ok(Self {
+            i2c_bus,
+            i2c_addr,
             i2c_dev,
             config: CONFIG.to_vec(),
             range_offset,
-        };
+        })
+    }
 
-        vl.check_model_id()?;
-        vl.soft_reset()?;
-        vl.wait_for_firmware_status_ready()?;
-        vl.write_i2c_28v()?;
-        vl.get_trim_resistors()?;
+    pub fn init(&mut self) -> Result<(), LinuxI2CError> {
+        self.check_model_id()?;
+        self.soft_reset()?;
+        self.wait_for_firmware_status_ready()?;
+        self.write_i2c_28v()?;
+        self.get_trim_resistors()?;
+        Ok(())
+    }
 
-        return Ok(vl);
+    pub fn set_device_address(&mut self, new_i2c_addr: u8) -> Result<(), LinuxI2CError> {
+        i2c_write_u8(
+            &mut self.i2c_dev, Vl53l1xReg::SlaveDeviceAddress.addr(), new_i2c_addr)?;
+        self.i2c_dev = LinuxI2CDevice::new(
+            get_i2c_bus_path(self.i2c_bus), new_i2c_addr as u16)?;
+        self.i2c_addr = new_i2c_addr;
+        Ok(())
     }
 
     fn check_model_id(&mut self) -> Result<(), LinuxI2CError> {
@@ -156,8 +171,8 @@ impl Vl53l1x {
 
     pub fn start_measurement(&mut self) -> Result<(), LinuxI2CError> {
         let mut config = self.config.clone();
-        // Add address (0x0001)
-        config.insert(0, 0x01);
+        // Add address (0x0002)
+        config.insert(0, 0x02);
         config.insert(0, 0x00);
         self.i2c_dev.write(&config)?;
         Ok(())
@@ -401,8 +416,8 @@ fn i2c_write_u16(i2c_dev: &mut LinuxI2CDevice, addr: u16, val: u16) -> Result<()
     Ok(())
 }
 
-const CONFIG: [u8; 135] = [
-  0x29, 0x02, 0x10, 0x00, 0x28, 0xBC, 0x7A, 0x81,
+const CONFIG: [u8; 134] = [
+  0x02, 0x10, 0x00, 0x28, 0xBC, 0x7A, 0x81,
   0x80, 0x07, 0x95, 0x00, 0xED, 0xFF, 0xF7, 0xFD,
   0x9E, 0x0E, 0x00, 0x10, 0x01, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x34, 0x00,

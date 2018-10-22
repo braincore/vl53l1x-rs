@@ -14,6 +14,11 @@ various registers, this library is based on the reverse engineering by
 
 This library has only been tested on the Raspberry Pi 3 B+.
 
+## Features
+
+* Set distance mode (short, mid, long).
+* Change i2c address of device.
+
 ## Todo
 
 - [ ] Get/set timing budget.
