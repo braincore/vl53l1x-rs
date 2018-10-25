@@ -16,13 +16,31 @@ pub fn main() {
 
     vl.start_ranging(vl53l1x::DistanceMode::Long).unwrap();
 
-    println!("Initial timing budget: {:?}", vl.get_measurement_timing_budget());
-    println!("Set timing budget: {:?}", vl.set_measurement_timing_budget(41000));
-    println!("After set timing budget: {:?}", vl.get_measurement_timing_budget());
+    println!(
+        "Initial timing budget: {:?}",
+        vl.get_measurement_timing_budget()
+    );
+    println!(
+        "Set timing budget: {:?}",
+        vl.set_measurement_timing_budget(41000)
+    );
+    println!(
+        "After set timing budget: {:?}",
+        vl.get_measurement_timing_budget()
+    );
 
-    println!("Initial inter period: {:?}", vl.get_inter_measurement_period());
-    println!("Set inter period: {:?}", vl.set_inter_measurement_period(45));
-    println!("After set inter period: {:?}", vl.get_inter_measurement_period());
+    println!(
+        "Initial inter period: {:?}",
+        vl.get_inter_measurement_period()
+    );
+    println!(
+        "Set inter period: {:?}",
+        vl.set_inter_measurement_period(45)
+    );
+    println!(
+        "After set inter period: {:?}",
+        vl.get_inter_measurement_period()
+    );
 
     loop {
         let s = vl.read_sample();

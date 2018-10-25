@@ -191,7 +191,10 @@ impl Vl53l1x {
     /// 140ms is the timing budget needed to measure up to the maximum distance
     /// of 4 meters in ideal conditions.
     /// `timing_budget` units are microseconds.
-    pub fn set_measurement_timing_budget(&mut self, timing_budget: u32) -> Result<(), Vl53l1xError> {
+    pub fn set_measurement_timing_budget(
+        &mut self,
+        timing_budget: u32,
+    ) -> Result<(), Vl53l1xError> {
         unsafe {
             let res = setMeasurementTimingBudgetMicroSeconds(self.i2c_dev, timing_budget);
             if res != 0 {
@@ -206,9 +209,12 @@ impl Vl53l1x {
         unsafe { getInterMeasurementPeriodMilliSeconds(self.i2c_dev) }
     }
 
-    /// Inter measurement period must be greater than timing budget. 
+    /// Inter measurement period must be greater than timing budget.
     /// `inter_measurement_period` units are milliseconds.
-    pub fn set_inter_measurement_period(&mut self, inter_measurement_period: u32) -> Result<(), Vl53l1xError> {
+    pub fn set_inter_measurement_period(
+        &mut self,
+        inter_measurement_period: u32,
+    ) -> Result<(), Vl53l1xError> {
         unsafe {
             let res = setInterMeasurementPeriodMilliSeconds(self.i2c_dev, inter_measurement_period);
             if res != 0 {
