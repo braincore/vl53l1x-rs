@@ -14,7 +14,7 @@ for using the VL53L1X on Linux without Rust.
 extern crate vl53l1x;
 
 pub fn main() {
-    let mut vl = vl53l1x::Vl53l1x::new(1).unwrap();
+    let mut vl = vl53l1x::Vl53l1x::new(1, None).unwrap();
     vl.init().unwrap();
     vl.start_ranging(vl53l1x::DistanceMode::Long).unwrap();
     loop {
