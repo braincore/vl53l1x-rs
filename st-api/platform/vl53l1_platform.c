@@ -129,6 +129,34 @@ VL53L1_Error setUserROI(uint8_t device_id, uint8_t top_left_x, uint8_t top_left_
     return VL53L1_SetUserROI(dev, &roi);
 }
 
+uint32_t getMeasurementTimingBudgetMicroSeconds(uint8_t device_id) {
+    VL53L1_DEV dev = devices[device_id - 1];
+    uint32_t timing_budget_us;
+    // TODO: Check status.
+    VL53L1_GetMeasurementTimingBudgetMicroSeconds(dev, &timing_budget_us);
+    return timing_budget_us;
+}
+
+VL53L1_Error setMeasurementTimingBudgetMicroSeconds(
+        uint8_t device_id, uint32_t timing_budget_us) {
+    VL53L1_DEV dev = devices[device_id - 1];
+    return VL53L1_SetMeasurementTimingBudgetMicroSeconds(dev, timing_budget_us);
+}
+
+uint32_t getInterMeasurementPeriodMilliSeconds(uint8_t device_id) {
+    VL53L1_DEV dev = devices[device_id - 1];
+    uint32_t inter_measurement_period;
+    // TODO: Check status.
+    VL53L1_GetInterMeasurementPeriodMilliSeconds(dev, &inter_measurement_period);
+    return inter_measurement_period;
+}
+
+VL53L1_Error setInterMeasurementPeriodMilliSeconds(
+        uint8_t device_id, uint32_t inter_measurement_period) {
+    VL53L1_DEV dev = devices[device_id - 1];
+    return VL53L1_SetInterMeasurementPeriodMilliSeconds(dev, inter_measurement_period);
+}
+
 /*
  * Linux-i2c Implementation
  */

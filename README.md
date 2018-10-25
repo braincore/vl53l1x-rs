@@ -28,6 +28,7 @@ See `examples/scan.rs` for a more thorough example.
 ## Features
 
 * Set distance mode (short, mid, long).
+* Set timing budget and inter measurement period.
 * Change i2c address of device.
 * Get/set region of interest to adjust field of view.
 * Makefile can be used to generate static or dynamic library without Rust.
@@ -53,7 +54,7 @@ for the device.
 This approach is similar to [vl53l1x-python](https://github.com/pimoroni/vl53l1x-python).
 However, that relies on Python providing an i2c function. This library
 implements the i2c adapter in C and is fully self-contained, which makes it
-ideal for being published as a shared library `libvl53l1x.so`.
+ideal for being published as a shared library `libvl53l1x`.
 
 ## Cross Compilation
 
@@ -79,8 +80,7 @@ The lib will be in the `build` directory.
 
 ## Todo
 
-- [ ] Publish `libvl53l1x.so` for non-Rust, Linux usage.
-- [ ] Get/set timing budget.
+- [ ] Publish `libvl53l1x` for non-Rust, Linux usage.
 
 ## Resources
 
