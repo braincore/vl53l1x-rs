@@ -66,6 +66,14 @@ pub struct Vl53l1xSample {
     pub status: Vl53l1xRangeStatus,
 }
 
+#[derive(Debug)]
+pub enum Vl53l1xReadSampleError {
+    /// Reported range was negative.
+    BadRange(i16),
+    /// Range status was not decodable to documented status.
+    BadRangeStatus(u8),
+}
+
 /// The VL53L1X Time of Flight sensor.
 pub struct Vl53l1x {
     i2c_addr: u8,
@@ -127,19 +135,27 @@ impl Vl53l1x {
         Ok(())
     }
 
-    pub fn read_sample(&mut self) -> Vl53l1xSample {
+    pub fn read_sample(&mut self) -> Result<Vl53l1xSample, Vl53l1xReadSampleError> {
         unsafe {
             let m = getRangingMeasurement(self.i2c_dev);
-            assert!(m.range_milli_meter >= 0);
-            Vl53l1xSample {
+            if m.range_milli_meter < 0 {
+                return Err(Vl53l1xReadSampleError::BadRange(m.range_milli_meter));
+            }
+            let range_status = Vl53l1xRangeStatus::from_u8(m.range_status);
+            if range_status.is_none() {
+                // While all documented statuses are enumerated, empirically,
+                // have seen other values.
+                return Err(Vl53l1xReadSampleError::BadRangeStatus(m.range_status));
+            }
+            Ok(Vl53l1xSample {
                 distance: m.range_milli_meter as u16,
                 signal_rate: m.signal_rate_rtn_mega_cps,
                 ambient_rate: m.ambient_rate_rtn_mega_cps,
                 spad_count: m.effective_spad_rtn_count,
                 // Should be safe to unwrap as all *documented* statuses are
                 // enumerated.
-                status: Vl53l1xRangeStatus::from_u8(m.range_status).unwrap(),
-            }
+                status: range_status.unwrap(),
+            })
         }
     }
 
