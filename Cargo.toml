@@ -8,6 +8,10 @@ repository = "https://github.com/braincore/vl53l1x-rs"
 keywords = ["vl53l1x"]
 readme = "README.md"
 
+[features]
+default = []
+i2c-2v8-mode = []
+
 [dependencies]
 enum-primitive-derive = "^0.1"
 num-traits = "^0.1"

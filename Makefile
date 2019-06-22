@@ -5,7 +5,7 @@ LIB = libvl53l1x_api
 DYLIB = $(LIB).so
 STATICLIB = $(LIB).a
 LDFLAGS :=
-CFLAGS := -Ist-api/core -Ist-api/platform -std=c99
+CFLAGS += -Ist-api/core -Ist-api/platform -std=c99
 
 # Default to build directory if no OUT_DIR specified.
 # This is useful for testing outside of cargo.

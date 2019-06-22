@@ -25,6 +25,18 @@ pub fn main() {
 
 See `examples/scan.rs` for a more thorough example.
 
+Note that if you use the sensor with 2.8 Volts (instead of the default 1.8V) you
+should enable the cargo feature `i2c-2v8-mode`, see the
+[Datasheet](https://www.st.com/resource/en/datasheet/vl53l1x.pdf) (section 5.2)
+for more information. Most existing breakout-boards run at 2.8V (or even 3.3V)
+so you probably want this. You can do so by putting the following in your
+`Cargo.toml`:
+```toml
+[dependencies.vl53l1x]
+version = "1"
+features = ["i2c-2v8-mode"]
+```
+
 ## Features
 
 * Set distance mode (short, mid, long).
