@@ -58,9 +58,10 @@ ideal for being published as a shared library `libvl53l1x`.
 
 ## Cross Compilation
 
-Specify a custom C-compiler using the `VL53L1X_CC` env arg. For example:
+Specify a custom C-compiler and archive utility using the `VL53L1X_CC` and
+`VL53L1X_AR` env args. For example:
 
-```VL53L1X_CC=arm-linux-gnueabihf-gcc cargo build```
+```VL53L1X_CC=arm-linux-gnueabihf-gcc VL53L1X_AR=arm-linux-gnueabihf-ar cargo build```
 
 ## Platform
 
