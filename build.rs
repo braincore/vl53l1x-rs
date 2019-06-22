@@ -11,6 +11,10 @@ fn main() {
     if let Ok(ar) = env::var("VL53L1X_AR") {
         make.env("AR", ar);
     }
+    // Optionally enable 2.8 Volt mode.
+    if cfg!(feature = "i2c-2v8-mode") {
+        make.env("CFLAGS", "-DUSE_I2C_2V8");
+    }
     // Makefile uses OUT_DIR as target.
     run(&mut make);
     let out_dir = env::var("OUT_DIR").expect("Need OUT_DIR specified by cargo.");
