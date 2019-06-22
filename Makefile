@@ -19,7 +19,7 @@ $(DYLIB): $(OBJS)
 		$(CC) $(LDFLAGS) $(CFLAGS) -fPIC -shared -o $(OUT_DIR)/$@ $(OBJS)
 
 $(STATICLIB): $(OBJS)
-		ar rcs $(OUT_DIR)/$@ $(OBJS)
+		$(AR) rcs $(OUT_DIR)/$@ $(OBJS)
 
 $(OUT_DIR)/$(SRC)/%.o: $(SRC)/%.c
 		mkdir -p $(dir $@)
