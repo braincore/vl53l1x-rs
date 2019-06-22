@@ -2,6 +2,7 @@
 extern crate enum_primitive_derive;
 extern crate num_traits;
 use num_traits::FromPrimitive;
+use std::{error, fmt};
 
 #[link(name = "vl53l1x_api")]
 extern "C" {
@@ -73,6 +74,19 @@ pub enum Vl53l1xReadSampleError {
     /// Range status was not decodable to documented status.
     BadRangeStatus(u8),
 }
+
+impl fmt::Display for Vl53l1xReadSampleError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Vl53l1xReadSampleError::BadRange(range) => write!(f, "Bad range: {}", range),
+            Vl53l1xReadSampleError::BadRangeStatus(status) => {
+                write!(f, "Bad range status: {}", status)
+            }
+        }
+    }
+}
+
+impl error::Error for Vl53l1xReadSampleError {}
 
 /// The VL53L1X Time of Flight sensor.
 pub struct Vl53l1x {
@@ -326,3 +340,11 @@ pub enum Vl53l1xError {
     NotImplemented = 215,
     PlatformSpecificStart = 196,
 }
+
+impl fmt::Display for Vl53l1xError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+impl error::Error for Vl53l1xError {}
