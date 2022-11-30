@@ -353,8 +353,8 @@ impl error::Error for Vl53l1xError {}
 
 fn from_1616_fixed(x: u32) -> f32 {
     let fractional_part = x & 0x0000_FFFF;
-    let integer_part = (x & 0xFFFF_0000)>>16;
-    let mut f: f32 = fractional_part as f32 / (1<<16) as f32;
+    let integer_part = (x & 0xFFFF_0000) >> 16;
+    let mut f: f32 = fractional_part as f32 / (1 << 16) as f32;
     f += integer_part as f32;
     f
 }
