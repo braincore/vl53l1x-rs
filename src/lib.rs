@@ -60,10 +60,11 @@ pub struct Vl53l1xSample {
     /// range status is Ok.
     pub distance: u16,
     /// Measure of target reflectance.
-    pub signal_rate: u32,
+    pub signal_rate: f32,
     /// Measure of ambient light.
-    pub ambient_rate: u32,
+    pub ambient_rate: f32,
     pub spad_count: u16,
+    pub sigma: f32,
     pub status: Vl53l1xRangeStatus,
 }
 
@@ -163,8 +164,9 @@ impl Vl53l1x {
             }
             Ok(Vl53l1xSample {
                 distance: m.range_milli_meter as u16,
-                signal_rate: m.signal_rate_rtn_mega_cps,
-                ambient_rate: m.ambient_rate_rtn_mega_cps,
+                signal_rate: from_1616_fixed(m.signal_rate_rtn_mega_cps),
+                ambient_rate: from_1616_fixed(m.ambient_rate_rtn_mega_cps),
+                sigma: from_1616_fixed(m.sigma_milli_meter),
                 spad_count: m.effective_spad_rtn_count,
                 // Should be safe to unwrap as all *documented* statuses are
                 // enumerated.
@@ -348,3 +350,11 @@ impl fmt::Display for Vl53l1xError {
 }
 
 impl error::Error for Vl53l1xError {}
+
+fn from_1616_fixed(x: u32) -> f32 {
+    let fractional_part = x & 0x0000_FFFF;
+    let integer_part = (x & 0xFFFF_0000) >> 16;
+    let mut f: f32 = fractional_part as f32 / (1 << 16) as f32;
+    f += integer_part as f32;
+    f
+}
